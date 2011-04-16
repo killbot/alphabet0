@@ -23,13 +23,16 @@ class Alphabet(object):
         global frame_rate
         global font_size
         global font_color
+        global font_outline
         global letter_velocity
         global cos_dict
         global sin_dict
+        self.background_color = [90, 90, 90]
+        self.background_direction = [1, 1, 1]
         self.velocity = {'speed':letter_velocity, 'direction':45}
         self.background = pygame.Surface(screen_size)
         self.background = self.background.convert()
-        self.background.fill((0, 0, 0))
+        self.background.fill(self.background_color)
         self.my_font = pygame.font.Font(None, font_size)
         self.playing = True
         self.letter_list_uc = ["A", "B", "C", "D", "E", "F", "G", "H", "I"\
@@ -40,45 +43,50 @@ class Alphabet(object):
         for i in self.letter_list_uc:
             temp_string_lc = string.lower(i)
             temp_string_uc = self.letter_list_uc[self.temp_counter]
-            self.letter_list_lc.append(self.my_font.render(temp_string_lc, 1,\
-                font_color))
+            self.letter_list_lc.append(textOutline(self.my_font, temp_string_lc, font_color, font_outline))
+#            self.letter_list_lc.append(self.my_font.render(temp_string_lc, 1,\
+#                font_color))
 #            self.letter_list_lc[self.temp_counter] = \
 #                self.my_font.render(temp_string_lc, 1, font_color)
-            self.letter_list_uc[self.temp_counter] = \
-                self.my_font.render(temp_string_uc, 1, font_color)
+#            self.letter_list_uc[self.temp_counter] = \
+#                self.my_font.render(temp_string_uc, 1, font_color)
+            self.letter_list_uc[self.temp_counter] = textOutline(self.my_font, temp_string_uc, font_color, font_outline)
             self.temp_counter += 1
         self.letter_list = [self.letter_list_uc, self.letter_list_lc]
         self.current_letter = 0     #index of the current letter
         self.current_caps = 0       # 0 = uppercase, 1 = lowercase
         self.letter_counter = 0     #used for animating from letter to letter
         self.letter_rect = self.create_rect()
+
     def update(self):
         if self.letter_counter >= (frame_rate * letter_change_freq):
             self.letter_counter = 0
             self.current_letter += 1
             if self.current_letter >= len(self.letter_list_uc):
                 self.current_letter = 0
-#        print("counter and letter = ", self.letter_counter, self.current_letter)
         self.letter_counter += 1
         self.check_bounds()
         dx = self.velocity['speed'] * cos_dict[self.velocity['direction']]
         dy = self.velocity['speed'] * sin_dict[self.velocity['direction']]
         self.letter_rect = self.letter_rect.move(dx, dy)
-    
+        self.change_background_color()
 
     def handle_events(self):
+        mods = pygame.key.get_mods()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.playing = False
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
-                    if self.current_caps == 0:      #this is the logical
-                        self.current_caps = 1       #XOR operation on 
-                    elif self.current_caps == 1:    #the current_caps flag
-                        self.current_caps = 0       #variable (0 or 1)
+                    self.current_caps = self.current_caps^1
+                if event.key == pygame.K_s and \
+                    mods & pygame.KMOD_RSHIFT and \
+                    mods & pygame.KMOD_LSHIFT:
+                    self.playing = False
         return self.playing
 
     def draw(self):
+             
         screen.blit(self.background, (0,0))
         screen.blit(self.letter_list[self.current_caps][self.current_letter],\
             (self.letter_rect))
@@ -108,9 +116,6 @@ class Alphabet(object):
         screen_right = screen_rect.right
         screen_top = screen_rect.top
         screen_bottom = screen_rect.bottom
-#        print("screen rect tblr = ", screen_top, screen_bottom, screen_left, screen_right)
- #       print("letter rect tblr = ", letter_rect.top, letter_rect.bottom, letter_rect.left, letter_rect.right)
-        print("direction = ", self.velocity['direction'])
         if (letter_rect.bottom >= screen_bottom) or \
             (letter_rect.top <= screen_top):
             self.velocity['direction'] = -self.velocity['direction']
@@ -126,6 +131,15 @@ class Alphabet(object):
         if self.velocity['direction'] < 0:
             self.velocity['direction'] += 360
 
-
+    def change_background_color(self):            
+        for i in range(len(self.background_color)):
+            self.background_color[i] += (i + 1) * self.background_direction[i]
+            if self.background_color[i] > 255:
+                self.background_color[i] = 255
+                self.background_direction[i] *= -1  #switch color direction
+            elif self.background_color[i] < 0:
+                self.background_color[i] = 0
+                self.background_direction[i] *=-1   #switch color direction
+        self.background.fill(self.background_color)
 if __name__ == "__main__":
     main()
