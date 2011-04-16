@@ -141,5 +141,6 @@ class Alphabet(object):
                 self.background_color[i] = 0
                 self.background_direction[i] *=-1   #switch color direction
         self.background.fill(self.background_color)
+
 if __name__ == "__main__":
     main()
