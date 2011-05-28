@@ -1,3 +1,4 @@
+import os
 import pygame
 import string
 from a_global import *
@@ -34,6 +35,7 @@ class Alphabet(object):
         self.background = self.background.convert()
         self.background.fill(self.background_color)
         self.my_font = pygame.font.Font(None, font_size)
+        self.escape_font = pygame.font.Font(None, 24)
         self.playing = True
         self.letter_list_uc = ["A", "B", "C", "D", "E", "F", "G", "H", "I"\
             , "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U"\
@@ -57,6 +59,11 @@ class Alphabet(object):
         self.current_caps = 0       # 0 = uppercase, 1 = lowercase
         self.letter_counter = 0     #used for animating from letter to letter
         self.letter_rect = self.create_rect()
+        self.escape_message = self.escape_font.render("Press L-Shift, R-shift, and S to quit", 1, (0,0,0))
+        self.escape_rect = self.escape_message.get_rect()
+        self.escape_rect.bottomleft = (0, screen_size[1])
+        self.load_music("miab-soundtrack.ogg")
+        pygame.mixer.music.play(-1)
 
     def update(self):
         if self.letter_counter >= (frame_rate * letter_change_freq):
@@ -90,6 +97,7 @@ class Alphabet(object):
         screen.blit(self.background, (0,0))
         screen.blit(self.letter_list[self.current_caps][self.current_letter],\
             (self.letter_rect))
+        screen.blit(self.escape_message, self.escape_rect)
         pygame.display.flip()
 
     def create_rect(self):
@@ -141,6 +149,10 @@ class Alphabet(object):
                 self.background_color[i] = 0
                 self.background_direction[i] *=-1   #switch color direction
         self.background.fill(self.background_color)
+
+    def load_music(self, song_name):
+        fullname = os.path.join('Soundtrack', song_name)
+        pygame.mixer.music.load(fullname)
 
 if __name__ == "__main__":
     main()
